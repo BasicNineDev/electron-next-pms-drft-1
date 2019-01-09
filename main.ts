@@ -1,10 +1,146 @@
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, screen, Menu } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
+import ipcMain = Electron.ipcMain;
 
-let win, serve;
+let win, child, serve;
 const args = process.argv.slice(1);
 serve = args.some(val => val === '--serve');
+
+
+
+const menu = [
+  {
+    label: 'Reservations',
+    submenu: [
+      {
+        label: 'Codes',
+        submenu: [
+          {
+            label: 'Out of Order reasons',
+            click() {
+              openChildWindow('/reservation/codes/out-of-order-reasons');
+            }
+          },
+          {
+            label: 'Room Conditions',
+            click() {
+              openChildWindow('/reservation/codes/room-conditions');
+            }
+          },
+          {
+            label: 'Housekeeping Attendants',
+            click() {}
+          },
+          {
+            label: 'Housekeeping Tasks',
+            click() {}
+          },
+          {
+            label: 'Reservation Types',
+            click() {}
+          },
+          {
+            label: 'Deposit Rules',
+            click() {}
+          },
+          {
+            label: 'Deposit Rule Schedules',
+            click() {}
+          },
+          {
+            label: 'Discount Reasons',
+            click() {}
+          },
+          {
+            label: 'Room Move Resasons',
+            click() {}
+          },
+          {
+            label: 'Cancellation Rasons',
+            click() {}
+          },
+          {
+            label: 'Origin Codes',
+            click() {}
+          },
+          {
+            label: 'Trace Texts',
+            click() {}
+          },
+          {
+            label: 'Waitlist Priorities',
+            click() {}
+          },
+          {
+            label: 'Waitlist Codes',
+            click() {}
+          },
+          {
+            label: 'Alert Definition',
+            submenu: [
+              {
+                label: 'Alert Messages',
+                click() {}
+              },
+              {
+                label: 'Global Alerts',
+                click() {}
+              }
+            ]
+          },
+          {
+            label: 'Custom',
+            submenu: [
+              {
+                label: 'Guest Status',
+                click() {}
+              },
+              {
+                label: 'Guest Type',
+                click() {}
+              },
+              {
+                label: 'Country Entry Point',
+                click() {}
+              },
+              {
+                label: 'Purpose of Stay',
+                click() {}
+              },
+              {
+                label: 'Immigration Status',
+                click() {}
+              },
+            ]
+          },
+        ]
+      }
+    ]
+  }
+];
+
+Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
+
+/*const { webContents } = require('electron')
+console.log(webContents)
+console.log(webContents.getAllWebContents())*/
+
+
+
+function openChildWindow(menuUrl) {
+  const newWin = new BrowserWindow({show: false, width: 1182, height: 630 });
+  newWin.webContents.openDevTools();
+  newWin.setMenu(null);
+  newWin.once('ready-to-show', () => newWin.show());
+  newWin.on('close', () => { win = null; });
+  newWin.loadURL(url.format({
+    pathname: path.join(__dirname, 'dist/index.html'),
+    protocol: 'file:',
+    slashes: true,
+    hash: menuUrl
+  }));
+}
 
 function createWindow() {
 
@@ -15,9 +151,26 @@ function createWindow() {
   win = new BrowserWindow({
     x: 0,
     y: 0,
-    width: size.width,
-    height: size.height
+    width: size.width / 2,
+    height: size.height / 2
   });
+
+  win.webContents.on('new-window', (event, uri) => {
+    event.preventDefault();
+    console.log('new-window');
+    const newWin = new BrowserWindow({show: false });
+    newWin.webContents.openDevTools();
+    newWin.once('ready-to-show', () => newWin.show());
+    newWin.loadURL(url.format({
+      /*pathname: path.join(__dirname, 'dist/index.html'),*/
+      /*pathname: path.join(__dirname, 'dist/index.html#/reservation/codes/out-of-order-reasons'),*/
+      pathname: path.join(__dirname, 'dist/index.html'),
+      protocol: 'file:',
+      slashes: true,
+      hash: uri
+    }));
+  });
+
 
   if (serve) {
     require('electron-reload')(__dirname, {
@@ -26,13 +179,16 @@ function createWindow() {
     win.loadURL('http://localhost:4200');
   } else {
     win.loadURL(url.format({
+      /*pathname: path.join(__dirname, 'dist/index.html'),*/
+      /*pathname: path.join(__dirname, 'dist/index.html#/reservation/codes/out-of-order-reasons'),*/
       pathname: path.join(__dirname, 'dist/index.html'),
       protocol: 'file:',
-      slashes: true
+      slashes: true/*,
+      hash: '/reservation/codes/out-of-order-reasons'*/
     }));
   }
 
-  win.webContents.openDevTools();
+  // win.webContents.openDevTools();
 
   // Emitted when the window is closed.
   win.on('closed', () => {
