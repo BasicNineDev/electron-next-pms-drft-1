@@ -19,34 +19,44 @@ const menu = [
           {
             label: 'Out of Order reasons',
             click() {
-              openChildWindow('/reservation/codes/out-of-order-reasons');
+              openChildWindow('/reservation/codes/out-of-order-reasons', serve);
             }
           },
           {
             label: 'Room Conditions',
             click() {
-              openChildWindow('/reservation/codes/room-conditions');
+              openChildWindow('/reservation/codes/room-conditions', serve);
             }
           },
           {
             label: 'Housekeeping Attendants',
-            click() {}
+            click() {
+              openChildWindow('/reservation/codes/housekeeping-attendants', serve);
+            }
           },
           {
             label: 'Housekeeping Tasks',
-            click() {}
+            click() {
+              openChildWindow('/reservation/codes/housekeeping-tasks', serve);
+            }
           },
           {
             label: 'Reservation Types',
-            click() {}
+            click() {
+              openChildWindow('/reservation/codes/reservation-types', serve);
+            }
           },
           {
             label: 'Deposit Rules',
-            click() {}
+            click() {
+              openChildWindow('/reservation/codes/deposit-rule', serve);
+            }
           },
           {
             label: 'Deposit Rule Schedules',
-            click() {}
+            click() {
+              openChildWindow('/reservation/codes/deposit-rule-schedules', serve);
+            }
           },
           {
             label: 'Discount Reasons',
@@ -128,18 +138,25 @@ console.log(webContents.getAllWebContents())*/
 
 
 
-function openChildWindow(menuUrl) {
+function openChildWindow(menuUrl, mode) {
   const newWin = new BrowserWindow({show: false, width: 1182, height: 630 });
   newWin.webContents.openDevTools();
   newWin.setMenu(null);
   newWin.once('ready-to-show', () => newWin.show());
   newWin.on('close', () => { win = null; });
-  newWin.loadURL(url.format({
-    pathname: path.join(__dirname, 'dist/index.html'),
-    protocol: 'file:',
-    slashes: true,
-    hash: menuUrl
-  }));
+  console.log('serve type', mode);
+  if (mode) {
+    console.log('serve type', 'http://localhost:4200/#' + menuUrl);
+
+    newWin.loadURL('http://localhost:4200/#' + menuUrl);
+  } else {
+    newWin.loadURL(url.format({
+      pathname: path.join(__dirname, 'dist/index.html'),
+      protocol: 'file:',
+      slashes: true,
+      hash: menuUrl
+    }));
+  }
 }
 
 function createWindow() {
@@ -151,8 +168,8 @@ function createWindow() {
   win = new BrowserWindow({
     x: 0,
     y: 0,
-    width: size.width / 2,
-    height: size.height / 2
+    width: size.width,
+    height: size.height
   });
 
   win.webContents.on('new-window', (event, uri) => {
@@ -176,8 +193,10 @@ function createWindow() {
     require('electron-reload')(__dirname, {
       electron: require(`${__dirname}/node_modules/electron`)
     });
+    console.log('here');
     win.loadURL('http://localhost:4200');
   } else {
+    console.log('there');
     win.loadURL(url.format({
       /*pathname: path.join(__dirname, 'dist/index.html'),*/
       /*pathname: path.join(__dirname, 'dist/index.html#/reservation/codes/out-of-order-reasons'),*/
